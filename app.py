@@ -12,8 +12,9 @@ import hashlib
 
 # --- 1. SETUP ---
 load_dotenv()
-os.environ["GOOGLE_API_KEY"] = "AIzaSyBu_MnRIRrf0ainigqSdyU4SyTjuA3lWCU"
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+# Securely load the API key from the hidden .env file
+API_KEY = os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=API_KEY)
 
 # --- 2. CONFIGURATION ---
 # FIXED: Using the exact name from your available models list
