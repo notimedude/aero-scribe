@@ -10,14 +10,12 @@ import re
 from datetime import datetime
 import hashlib
 
-# --- 1. SETUP ---
+
 load_dotenv()
-# Securely load the API key from the hidden .env file
 API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=API_KEY)
 
-# --- 2. CONFIGURATION ---
-# FIXED: Using the exact name from your available models list
+
 MODEL_NAME = 'gemini-flash-latest'
 model = genai.GenerativeModel(MODEL_NAME)
 
@@ -30,7 +28,7 @@ LANG_CODES = {
     "Arabic": "ar"
 }
 
-# SIMULATED ERP DATABASE
+
 ERP_INVENTORY = {
     "O-Ring": {"sku": "OR-9982", "stock": 42, "loc": "Bin A-12"},
     "Hydraulic Fluid": {"sku": "MIL-PRF-5606", "stock": 15, "loc": "Hazmat Cabinet"},
@@ -39,7 +37,7 @@ ERP_INVENTORY = {
     "Cotter Pin": {"sku": "MS24665", "stock": 100, "loc": "Bin C-01"}
 }
 
-# --- 3. HELPER FUNCTIONS ---
+
 @st.cache_data
 def get_pdf_text(uploaded_file):
     try:
@@ -119,7 +117,7 @@ SUPERVISOR SIGNATURE: __________________________
 """
     return log_content
 
-# --- 4. UI SETUP ---
+
 st.set_page_config(page_title="Aero-Scribe Ultimate", layout="wide")
 st.title("Aero-Scribe: AI Maintenance Operating System")
 
@@ -130,7 +128,7 @@ if "analysis_result" not in st.session_state:
 if "blockchain_hash" not in st.session_state:
     st.session_state.blockchain_hash = ""
 
-# --- 5. SIDEBAR ---
+
 with st.sidebar:
     st.header("1. System Configuration")
     language = st.selectbox("Output Language", list(LANG_CODES.keys()))
@@ -143,7 +141,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Core: {MODEL_NAME} | Modules: Vision, Audio, ERP, Blockchain")
 
-# --- 6. MAIN LOGIC ---
+
 if uploaded_pdf and (uploaded_image or uploaded_audio):
     
     # Display Inputs
@@ -154,7 +152,7 @@ if uploaded_pdf and (uploaded_image or uploaded_audio):
             st.image(image, caption="Visual Input", width="stretch")
     with col2:
         if uploaded_audio:
-            # FIXED: Removed 'caption' argument from st.audio
+            
             st.audio(uploaded_audio)
             st.caption("Acoustic Input") 
             st.info("Acoustic Module Active: Analyzing spectral signature...")
@@ -169,7 +167,7 @@ if uploaded_pdf and (uploaded_image or uploaded_audio):
                 if len(context_text) > 40000:
                     context_text = context_text[:40000] + "\n...[Truncated]"
 
-                # BUILD THE PROMPT
+                
                 inputs = [f"""
                 Act as a Senior Aircraft Maintenance Engineer.
                 
@@ -209,44 +207,44 @@ if uploaded_pdf and (uploaded_image or uploaded_audio):
                 """]
                 
                 if uploaded_image: inputs.append(image)
-                # Handle Audio Input for Model
+                
                 if uploaded_audio: 
-                    # Note: We send audio data if the model supports it. 
-                    # If using gemini-flash-latest (1.5), it supports audio.
+                    
+                    
                     inputs.append({"mime_type": "audio/mp3", "data": uploaded_audio.getvalue()})
 
-                # GENAI CALL
+                
                 response = model.generate_content(inputs)
                 st.session_state.analysis_result = response.text
                 
-                # BLOCKCHAIN HASH GENERATION
+                
                 st.session_state.blockchain_hash = generate_blockchain_hash(response.text)
                 
             except Exception as e:
                 st.error(f"Error: {e}")
 
-    # --- DISPLAY RESULTS ---
+    
     if st.session_state.analysis_result:
         st.divider()
         
-        # 1. AGENTIC PROCUREMENT (ERP CHECK)
+        
         st.subheader("LOGISTICS AGENT (ERP CONNECTION)")
         stock_status = check_inventory(st.session_state.analysis_result)
         st.code(stock_status, language="text") 
         
         st.divider()
 
-        # 2. MAIN OUTPUT
+        
         st.subheader("DIAGNOSTIC & REPAIR PLAN")
         st.text(st.session_state.analysis_result)
         
-        # 3. NATIVE AUDIO
+        
         st.subheader("HANDS-FREE AUDIO")
         audio_data = text_to_speech(st.session_state.analysis_result, language)
         if audio_data:
             st.audio(audio_data, format='audio/mp3')
 
-        # 4. BLOCKCHAIN & DOWNLOAD
+        
         st.divider()
         st.subheader("COMPLIANCE AGENT (BLOCKCHAIN LEDGER)")
         st.info(f"IMMUTABLE RECORD ID: {st.session_state.blockchain_hash}")
@@ -259,7 +257,7 @@ if uploaded_pdf and (uploaded_image or uploaded_audio):
             mime="text/plain"
         )
         
-        # 5. Q&A CHAT
+        
         st.divider()
         st.subheader("Ask the Co-Pilot")
         user_question = st.text_input("Query Manual:")
